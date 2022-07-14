@@ -1,4 +1,4 @@
-import { WebSQLAdapter } from './adapter';
+import { SqliteAdapter } from './adapter';
 import { Model, Schema, debug, Select, paramsType } from '@storago/orm';
 
 type whereTuple = [string, paramsType[] | undefined];
@@ -9,7 +9,7 @@ export class WebSQLSelect<M extends Model> implements Select<M> {
 
   private Model: new() => M;
   private schema: Schema<M>;
-  private adapter: WebSQLAdapter;
+  private adapter: SqliteAdapter;
   private _offset: number = 0;
   private _distinct: boolean = false;
   private _from: string = '';
@@ -21,7 +21,7 @@ export class WebSQLSelect<M extends Model> implements Select<M> {
   private _params: paramsType[] = [];
   private _order: string[] = [];
 
-  constructor(model: new() => M, schema: Schema<M>, adapter: WebSQLAdapter) {
+  constructor(model: new() => M, schema: Schema<M>, adapter: SqliteAdapter) {
     this.Model = model;
     this.adapter = adapter;
     this.schema = schema;

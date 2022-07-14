@@ -1,18 +1,18 @@
 import { Model, Schema, debug, Insert } from "@storago/orm";
-import { WebSQLAdapter } from "./adapter";
+import { SqliteAdapter } from "./adapter";
 
 
 export type dbValueCast = string | number;
 
-export class WebSQLInsert<M extends Model> implements Insert {
+export class SqliteInsert<M extends Model> implements Insert {
 
-  protected Model: new() => M;
+  protected Model: new () => M;
   protected schema: Schema<M>;
-  protected adapter: WebSQLAdapter;
+  protected adapter: SqliteAdapter;
   protected values: dbValueCast[] = [];
   protected objects: Model[] = [];
 
-  constructor(model: new() => M, schema: Schema<M>, adapter: WebSQLAdapter) {
+  constructor(model: new () => M, schema: Schema<M>, adapter: SqliteAdapter) {
     this.Model = model;
     this.adapter = adapter;
     this.schema = schema;
@@ -55,14 +55,14 @@ export class WebSQLInsert<M extends Model> implements Insert {
         let index = parseInt(i);
         let field = fields[i];
 
-        this.values.push(field.toDB(obj)); //guarda os valores para gravar no banco
+        this.values.push(field.toDB(this.adapter, obj)); //guarda os valores para gravar no banco
 
         sql += '?';
         if (index < length) {
           sql += ', ';
         }
       }
-      
+
       sql += ')';
 
       if (o_index < o_size) {
@@ -78,15 +78,15 @@ export class WebSQLInsert<M extends Model> implements Insert {
   public async execute(): Promise<SQLResultSet> {
 
     let sql = this.render();
-    if(debug.insert){
+    if (debug.insert) {
       console.log(sql, this.values);
     }
-    
+
 
     return this.adapter.query(sql, this.values);
   }
 
-  public async save() : Promise<void>{
+  public async save(): Promise<void> {
 
     let result = await this.execute();
     console.log('result', result);

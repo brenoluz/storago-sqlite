@@ -1,33 +1,32 @@
-import { Model, Schema, debug, Adapter, engineKind } from "@storago/orm";
+import { Model, Schema, debug, Adapter, Field, FieldKind, codeFieldError } from "@storago/orm";
 import { WebSQLSelect } from "./select";
-import { WebSQLInsert } from "./insert";
-import { WebSQLCreate } from "./create";
+import { SqliteInsert } from "./insert";
+import { SqliteCreate } from "./create";
 
-type callbackMigration = {(transaction: SQLTransaction) : Promise<void>};
+type callbackMigration = { (transaction: SQLTransaction): Promise<void> };
 
-export class WebSQLAdapter implements Adapter {
+export class SqliteAdapter implements Adapter {
 
   public readonly db: Database;
-  public readonly engine: engineKind = engineKind.WebSQL;
 
   constructor(name: string, description: string, size: number) {
 
-    if(typeof name == 'string'){
+    if (typeof name == 'string') {
       this.db = window.openDatabase(name, '', description, size);
     }
   }
 
-  public getVersion(): ''|number {
+  public getVersion(): '' | number {
 
     let version = this.db.version as string;
     if (version !== '') {
       return parseInt(version);
     }
-    
+
     return '';
   }
 
-  public changeVersion(newVersion: number, cb: callbackMigration) : Promise<void>{
+  public changeVersion(newVersion: number, cb: callbackMigration): Promise<void> {
 
     return new Promise((resolve, reject) => {
 
@@ -42,19 +41,46 @@ export class WebSQLAdapter implements Adapter {
     });
   }
 
-  public select<M extends Model>(model: new() => M, schema: Schema<M>): WebSQLSelect<M> {
+  fieldTransformFromDb<F extends Field>(field: F, value: any): any {
+
+    return 'a';
+  }
+
+  fieldTransformToDB<F extends Field>(field: F, model: Model): any {
+
+    return 'a';
+  };
+
+  fieldCast<F extends Field>(field: F): string {
+
+    if ([FieldKind.Text, FieldKind.Json].indexOf(field.kind) >= 0) {
+      return 'TEXT';
+    }
+
+    if ([FieldKind.Number, FieldKind.Integer, FieldKind.DateTime].indexOf(field.kind) >= 0) {
+      return 'NUMERIC';
+    }
+
+    if ([FieldKind.Date].indexOf(field.kind) >= 0) {
+      return 'DATE';
+    }
+
+    throw { code: codeFieldError.FieldKindNotSupported, message: `FieldKind: ${ field.kind }` };
+  };
+
+  public select<M extends Model>(model: new () => M, schema: Schema<M>): WebSQLSelect<M> {
     let select = new WebSQLSelect<M>(model, schema, this);
     return select;
   }
 
-  public insert<M extends Model>(model: new() => M, schema: Schema<M>): WebSQLInsert<M> {
-    let insert = new WebSQLInsert<M>(model, schema, this);
+  public insert<M extends Model>(model: new () => M, schema: Schema<M>): SqliteInsert<M> {
+    let insert = new SqliteInsert<M>(model, schema, this);
     return insert;
   }
 
-  public create<M extends Model>(model: new() => M, schema: Schema<M>) : WebSQLCreate<M> {
+  public create<M extends Model>(model: new () => M, schema: Schema<M>): SqliteCreate<M> {
 
-    let create = new WebSQLCreate<M>(model, schema, this);
+    let create = new SqliteCreate<M>(model, schema, this);
     return create;
   }
 
@@ -62,14 +88,14 @@ export class WebSQLAdapter implements Adapter {
 
     return new Promise(async (resolve, reject) => {
 
-      if(tx === undefined){
+      if (tx === undefined) {
         tx = await this.getTransaction();
       }
 
-      if(debug.query){
+      if (debug.query) {
         console.log('@storago/orm', 'query', sql, data);
       }
-      
+
       tx.executeSql(sql, data, (tx: SQLTransaction, result: SQLResultSet): void => {
 
         resolve(result);

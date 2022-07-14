@@ -1,13 +1,13 @@
-import { Model, Schema, Create, Adapter, engineKind } from "@storago/orm";
-import { WebSQLAdapter } from './adapter';
+import { Model, Schema, Create, Adapter } from "@storago/orm";
+import { SqliteAdapter } from './adapter';
 
-export class WebSQLCreate<M extends Model> implements Create{
+export class SqliteCreate<M extends Model> implements Create{
 
   private Model: new() => M;
-  private adapter: WebSQLAdapter;
+  private adapter: SqliteAdapter;
   private schema: Schema<M>;
  
-  constructor(model: new() => M, schema: Schema<M>, adapter: WebSQLAdapter){
+  constructor(model: new() => M, schema: Schema<M>, adapter: SqliteAdapter){
     this.Model = model;
     this.adapter = adapter;
     this.schema = schema;
@@ -20,7 +20,7 @@ export class WebSQLCreate<M extends Model> implements Create{
 
     for(let field of fields){
       let name = field.getName();
-      columns.push(`${name} ${field.castDB(this.adapter)}`);
+      columns.push(`${name} ${field.castDB<SqliteAdapter>(this.adapter)}`);
     }
 
     return columns;
