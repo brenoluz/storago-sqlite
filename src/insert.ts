@@ -1,18 +1,17 @@
-import { Model, Schema, debug, Insert } from "@storago/orm";
+import { Model, ConstructorModel, Schema, debug, Insert } from "@storago/orm";
 import { SqliteAdapter } from "./adapter";
-
 
 export type dbValueCast = string | number;
 
 export class SqliteInsert<M extends Model> implements Insert {
 
-  protected Model: new () => M;
-  protected schema: Schema<M>;
-  protected adapter: SqliteAdapter;
+  protected readonly Model: ConstructorModel<M>;
+  protected readonly schema: Schema<M>;
+  protected readonly adapter: SqliteAdapter;
   protected values: dbValueCast[] = [];
   protected objects: M[] = [];
 
-  constructor(model: new () => M, schema: Schema<M>, adapter: SqliteAdapter) {
+  constructor(model: ConstructorModel<M>, schema: Schema<M>, adapter: SqliteAdapter) {
     this.Model = model;
     this.adapter = adapter;
     this.schema = schema;

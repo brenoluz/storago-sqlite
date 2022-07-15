@@ -1,5 +1,5 @@
 import { SqliteAdapter } from './adapter';
-import { Model, Schema, debug, Select, paramsType } from '@storago/orm';
+import { Model, ConstructorModel, Schema, debug, Select, paramsType } from '@storago/orm';
 
 type whereTuple = [string, paramsType[] | undefined];
 type joinTuple = [string, string];
@@ -7,10 +7,9 @@ type orderType = "ASC" | "DESC";
 
 export class WebSQLSelect<M extends Model> implements Select<M> {
 
-  private Model: new() => M;
+  private Model: ConstructorModel<M>;
   private schema: Schema<M>;
   private adapter: SqliteAdapter;
-  private _offset: number = 0;
   private _distinct: boolean = false;
   private _from: string = '';
   private _where: whereTuple[] = [];
@@ -20,8 +19,10 @@ export class WebSQLSelect<M extends Model> implements Select<M> {
   private _joinRight: joinTuple[] = [];
   private _params: paramsType[] = [];
   private _order: string[] = [];
+  private _offset?: number;
+  private _limit?: number;
 
-  constructor(model: new() => M, schema: Schema<M>, adapter: SqliteAdapter) {
+  constructor(model: ConstructorModel<M>, schema: Schema<M>, adapter: SqliteAdapter) {
     this.Model = model;
     this.adapter = adapter;
     this.schema = schema;
@@ -30,6 +31,12 @@ export class WebSQLSelect<M extends Model> implements Select<M> {
   distinct(flag: boolean = true): WebSQLSelect<M> {
 
     this._distinct = flag;
+    return this;
+  }
+
+  limit(limit: number, offset?: number): WebSQLSelect<M> {
+    this._limit = limit;
+    this._offset = offset;
     return this;
   }
 
@@ -52,11 +59,11 @@ export class WebSQLSelect<M extends Model> implements Select<M> {
   where(criteria: string, params?: paramsType[] | paramsType): WebSQLSelect<M> {
 
     const _params: paramsType[] = [];
-    if(params === undefined){
+    if (params === undefined) {
       this._where.push([criteria, undefined]);
       return this;
     }
-    
+
     if (!Array.isArray(params)) {
       this._where.push([criteria, [params]]);
       return this;
@@ -150,6 +157,15 @@ export class WebSQLSelect<M extends Model> implements Select<M> {
     }
 
     sql += this._order.join(' ');
+
+    if (this._limit !== undefined) {
+      sql += ` LIMIT ${ this._limit }`;
+    }
+
+    if (this._offset !== undefined) {
+      sql += ` OFFSET ${ this._offset }`;
+    }
+
     sql += ';';
     return sql;
   }
@@ -158,7 +174,7 @@ export class WebSQLSelect<M extends Model> implements Select<M> {
     return this.render();
   }
 
-  public async execute(): Promise<SQLResultSet> {
+  public execute(): Promise<SQLResultSet> {
 
     let sql: string = this.render();
     console.log('execute', sql, this._params);
@@ -172,7 +188,6 @@ export class WebSQLSelect<M extends Model> implements Select<M> {
 
     for (let i = 0; result.rows.length > i; i++) {
       let row = result.rows.item(i);
-      let Model = new this.Model(); 
       promises.push(this.schema.populateFromDB(row));
     }
 
@@ -185,7 +200,7 @@ export class WebSQLSelect<M extends Model> implements Select<M> {
   }
 
   public async one(): Promise<M> {
-
+    this.limit(1);
     let rowset = await this.all();
     return rowset[0];
   }

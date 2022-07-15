@@ -1,4 +1,4 @@
-import { Model, Schema, debug, Adapter, Field, FieldKind, codeFieldError } from "@storago/orm";
+import { Model, ConstructorModel, Schema, debug, Adapter, Field, FieldKind, codeFieldError } from "@storago/orm";
 import { WebSQLSelect } from "./select";
 import { SqliteInsert } from "./insert";
 import { SqliteCreate } from "./create";
@@ -47,7 +47,7 @@ export class SqliteAdapter implements Adapter {
       return undefined;
     }
 
-    if (field.kind == FieldKind.Boolean) {
+    if (field.kind == FieldKind.BOOLEAN) {
       if (value === 'true') {
         value = true;
       } else if (value === 'false') {
@@ -57,15 +57,15 @@ export class SqliteAdapter implements Adapter {
       return value;
     }
 
-    if (field.kind == FieldKind.Json) {
+    if (field.kind == FieldKind.JSON) {
       return JSON.parse(value);
     }
 
-    if (field.kind == FieldKind.Integer) {
+    if (field.kind == FieldKind.INTEGER) {
       return parseInt(value);
     }
 
-    if ([FieldKind.Date, FieldKind.DateTime].indexOf(field.kind) >= 0) {
+    if ([FieldKind.DATE, FieldKind.DATETIME].indexOf(field.kind) >= 0) {
       return new Date(value);
     }
 
@@ -78,25 +78,40 @@ export class SqliteAdapter implements Adapter {
       return null;
     }
 
-    if (field.kind == FieldKind.Boolean) {
+    if (field.kind == FieldKind.BOOLEAN) {
       if (value === true) {
-        value = 'true';
+        value = 1;
       } else if (value === false) {
-        value = 'false';
+        value = 0;
       }
 
       return value;
     }
 
-    if (field.kind == FieldKind.Json) {
+    if (field.kind == FieldKind.JSON) {
       return JSON.stringify(value);
     }
 
-    if (field.kind == FieldKind.Integer) {
+    if ([
+      FieldKind.INTEGER, 
+      FieldKind.BOOLEAN,
+      FieldKind.TINYINT,
+      FieldKind.SMALLINT,
+      FieldKind.MEDIUMINT,
+      FieldKind.BIGINT,
+    ].indexOf(field.kind) >= 0) {
       return parseInt(value);
     }
 
-    if ([FieldKind.Date, FieldKind.DateTime].indexOf(field.kind) >= 0) {
+    if ([
+      FieldKind.REAL, 
+      FieldKind.DOUBLE,
+      FieldKind.FLOAT,
+    ].indexOf(field.kind) >= 0) {
+      return parseFloat(value);
+    }
+
+    if ([FieldKind.DATE, FieldKind.DATETIME].indexOf(field.kind) >= 0) {
       return value.getTime();
     }
 
@@ -105,28 +120,62 @@ export class SqliteAdapter implements Adapter {
 
   fieldCast<F extends Field>(field: F): string {
 
-    if ([FieldKind.Text, FieldKind.Json].indexOf(field.kind) >= 0) {
+    if ([
+      FieldKind.TEXT,
+      FieldKind.VARCHAR,
+      FieldKind.CHARACTER,
+      FieldKind.JSON,
+      FieldKind.UUID].indexOf(field.kind) >= 0) {
       return 'TEXT';
     }
 
-    if ([FieldKind.Numeric, FieldKind.Integer, FieldKind.DateTime, FieldKind.Date].indexOf(field.kind) >= 0) {
+    if ([
+      FieldKind.NUMERIC, 
+      FieldKind.DATETIME, 
+      FieldKind.DATE,
+      FieldKind.DECIMAL].indexOf(field.kind) >= 0) {
       return 'NUMERIC';
+    }
+
+    if ([
+      FieldKind.INTEGER, 
+      FieldKind.BOOLEAN,
+      FieldKind.TINYINT,
+      FieldKind.SMALLINT,
+      FieldKind.MEDIUMINT,
+      FieldKind.BIGINT,
+    ].indexOf(field.kind) >= 0) {
+      return 'INTEGER';
+    }
+
+    if ([
+      FieldKind.REAL, 
+      FieldKind.DOUBLE,
+      FieldKind.FLOAT,
+    ].indexOf(field.kind) >= 0) {
+      return 'REAL';
+    }
+
+    if ([
+      FieldKind.BLOB, 
+    ].indexOf(field.kind) >= 0) {
+      return 'BLOB';
     }
 
     throw { code: codeFieldError.FieldKindNotSupported, message: `FieldKind: ${ field.kind }` };
   };
 
-  public select<M extends Model>(model: new () => M, schema: Schema<M>): WebSQLSelect<M> {
+  public select<M extends Model>(model: ConstructorModel<M>, schema: Schema<M>): WebSQLSelect<M> {
     let select = new WebSQLSelect<M>(model, schema, this);
     return select;
   }
 
-  public insert<M extends Model>(model: new () => M, schema: Schema<M>): SqliteInsert<M> {
+  public insert<M extends Model>(model: ConstructorModel<M>, schema: Schema<M>): SqliteInsert<M> {
     let insert = new SqliteInsert<M>(model, schema, this);
     return insert;
   }
 
-  public create<M extends Model>(model: new () => M, schema: Schema<M>): SqliteCreate<M> {
+  public create<M extends Model>(model: ConstructorModel<M>, schema: Schema<M>): SqliteCreate<M> {
 
     let create = new SqliteCreate<M>(model, schema, this);
     return create;

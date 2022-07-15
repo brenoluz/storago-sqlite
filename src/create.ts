@@ -1,13 +1,13 @@
-import { Model, Schema, Create, Adapter } from "@storago/orm";
+import { Model, ConstructorModel, Schema, Create, Adapter } from "@storago/orm";
 import { SqliteAdapter } from './adapter';
 
 export class SqliteCreate<M extends Model> implements Create{
 
-  private Model: new() => M;
+  private Model: ConstructorModel<M>;
   private adapter: SqliteAdapter;
   private schema: Schema<M>;
  
-  constructor(model: new() => M, schema: Schema<M>, adapter: SqliteAdapter){
+  constructor(model: ConstructorModel<M>, schema: Schema<M>, adapter: SqliteAdapter){
     this.Model = model;
     this.adapter = adapter;
     this.schema = schema;
