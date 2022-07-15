@@ -43,12 +43,64 @@ export class SqliteAdapter implements Adapter {
 
   fieldTransformFromDb<F extends Field>(field: F, value: any): any {
 
-    return 'a';
+    if (value === null) {
+      return undefined;
+    }
+
+    if (field.kind == FieldKind.Boolean) {
+      if (value === 'true') {
+        value = true;
+      } else if (value === 'false') {
+        value = false;
+      }
+
+      return value;
+    }
+
+    if (field.kind == FieldKind.Json) {
+      return JSON.parse(value);
+    }
+
+    if (field.kind == FieldKind.Integer) {
+      return parseInt(value);
+    }
+
+    if ([FieldKind.Date, FieldKind.DateTime].indexOf(field.kind) >= 0) {
+      return new Date(value);
+    }
+
+    return value;
   }
 
-  fieldTransformToDB<F extends Field>(field: F, model: Model): any {
+  fieldTransformToDB<F extends Field>(field: F, value: any): any {
 
-    return 'a';
+    if (value === undefined) {
+      return null;
+    }
+
+    if (field.kind == FieldKind.Boolean) {
+      if (value === true) {
+        value = 'true';
+      } else if (value === false) {
+        value = 'false';
+      }
+
+      return value;
+    }
+
+    if (field.kind == FieldKind.Json) {
+      return JSON.stringify(value);
+    }
+
+    if (field.kind == FieldKind.Integer) {
+      return parseInt(value);
+    }
+
+    if ([FieldKind.Date, FieldKind.DateTime].indexOf(field.kind) >= 0) {
+      return value.getTime();
+    }
+
+    return value;
   };
 
   fieldCast<F extends Field>(field: F): string {
@@ -57,12 +109,8 @@ export class SqliteAdapter implements Adapter {
       return 'TEXT';
     }
 
-    if ([FieldKind.Number, FieldKind.Integer, FieldKind.DateTime].indexOf(field.kind) >= 0) {
+    if ([FieldKind.Numeric, FieldKind.Integer, FieldKind.DateTime, FieldKind.Date].indexOf(field.kind) >= 0) {
       return 'NUMERIC';
-    }
-
-    if ([FieldKind.Date].indexOf(field.kind) >= 0) {
-      return 'DATE';
     }
 
     throw { code: codeFieldError.FieldKindNotSupported, message: `FieldKind: ${ field.kind }` };

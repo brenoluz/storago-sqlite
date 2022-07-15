@@ -10,7 +10,7 @@ export class SqliteInsert<M extends Model> implements Insert {
   protected schema: Schema<M>;
   protected adapter: SqliteAdapter;
   protected values: dbValueCast[] = [];
-  protected objects: Model[] = [];
+  protected objects: M[] = [];
 
   constructor(model: new () => M, schema: Schema<M>, adapter: SqliteAdapter) {
     this.Model = model;
@@ -18,7 +18,7 @@ export class SqliteInsert<M extends Model> implements Insert {
     this.schema = schema;
   }
 
-  add(row: Model): void {
+  add(row: M): void {
 
     this.objects.push(row);
   }
@@ -55,7 +55,7 @@ export class SqliteInsert<M extends Model> implements Insert {
         let index = parseInt(i);
         let field = fields[i];
 
-        this.values.push(field.toDB(this.adapter, obj)); //guarda os valores para gravar no banco
+        this.values.push(field.toDB<SqliteAdapter, M>(this.adapter, obj)); //guarda os valores para gravar no banco
 
         sql += '?';
         if (index < length) {

@@ -5,6 +5,7 @@
     "module": "es6",
     "target": "es5",
     "allowJs": false,
+    "declaration": true,
     "lib": [ "es2019", "dom" ],
     "moduleResolution": "node",
     "types": [
