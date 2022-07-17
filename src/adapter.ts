@@ -2,6 +2,7 @@ import { Model, Schema, debug, Adapter, Field, FieldKind, codeFieldError } from 
 import { SqliteSelect } from "./select";
 import { SqliteInsert } from "./insert";
 import { SqliteCreate } from "./create";
+import openDatabase from "websql";
 
 type callbackMigration = { (transaction: SQLTransaction): Promise<void> };
 
@@ -12,7 +13,7 @@ export class SqliteAdapter implements Adapter {
   constructor(name: string, description: string, size: number) {
 
     if (typeof name == 'string') {
-      this.db = window.openDatabase(name, '', description, size);
+      this.db = openDatabase(name, '', description, size);
     }
   }
 

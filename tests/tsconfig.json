@@ -12,7 +12,6 @@
     "types": [
       "@types/websql",
       "@types/jest",
-      "@types/node",
     ]
   },
   "include": [
