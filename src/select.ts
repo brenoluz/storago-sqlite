@@ -1,15 +1,13 @@
-import { SqliteAdapter } from './adapter';
-import { Model, ConstructorModel, Schema, debug, Select, paramsType } from '@storago/orm';
+import { Model, Schema, debug, Select, paramsType, Adapter } from '@storago/orm';
 
 type whereTuple = [string, paramsType[] | undefined];
 type joinTuple = [string, string];
 type orderType = "ASC" | "DESC";
 
-export class WebSQLSelect<M extends Model> implements Select<M> {
+export class SqliteSelect<A extends Adapter, M extends Model<A>> implements Select<A, M> {
 
-  private Model: ConstructorModel<M>;
-  private schema: Schema<M>;
-  private adapter: SqliteAdapter;
+  private schema: Schema<A, M>;
+  private adapter: A;
   private _distinct: boolean = false;
   private _from: string = '';
   private _where: whereTuple[] = [];
@@ -22,25 +20,24 @@ export class WebSQLSelect<M extends Model> implements Select<M> {
   private _offset?: number;
   private _limit?: number;
 
-  constructor(model: ConstructorModel<M>, schema: Schema<M>, adapter: SqliteAdapter) {
-    this.Model = model;
-    this.adapter = adapter;
+  constructor(schema: Schema<A, M>) {
     this.schema = schema;
+    this.adapter = this.schema.getAdapter();
   }
 
-  distinct(flag: boolean = true): WebSQLSelect<M> {
+  distinct(flag: boolean = true): SqliteSelect<A, M> {
 
     this._distinct = flag;
     return this;
   }
 
-  limit(limit: number, offset?: number): WebSQLSelect<M> {
+  limit(limit: number, offset?: number): SqliteSelect<A, M> {
     this._limit = limit;
     this._offset = offset;
     return this;
   }
 
-  from(from: string, columns?: string[]): WebSQLSelect<M> {
+  from(from: string, columns?: string[]): SqliteSelect<A, M> {
 
     this._from = from;
     if (!columns) {
@@ -56,7 +53,7 @@ export class WebSQLSelect<M extends Model> implements Select<M> {
     return this;
   }
 
-  where(criteria: string, params?: paramsType[] | paramsType): WebSQLSelect<M> {
+  where(criteria: string, params?: paramsType[] | paramsType): SqliteSelect<A, M> {
 
     const _params: paramsType[] = [];
     if (params === undefined) {
@@ -73,7 +70,7 @@ export class WebSQLSelect<M extends Model> implements Select<M> {
     return this;
   }
 
-  join(tableName: string, on: string, columns?: string[]): WebSQLSelect<M> {
+  join(tableName: string, on: string, columns?: string[]): SqliteSelect<A, M> {
 
     this._join.push([tableName, on]);
     if (!!columns) {
@@ -82,7 +79,7 @@ export class WebSQLSelect<M extends Model> implements Select<M> {
     return this;
   }
 
-  joinLeft(tableName: string, on: string, columns?: string[]): WebSQLSelect<M> {
+  joinLeft(tableName: string, on: string, columns?: string[]): SqliteSelect<A, M> {
 
     this._joinLeft.push([tableName, on]);
     if (!!columns) {
@@ -91,7 +88,7 @@ export class WebSQLSelect<M extends Model> implements Select<M> {
     return this;
   }
 
-  joinRight(tableName: string, on: string, columns: string[]): WebSQLSelect<M> {
+  joinRight(tableName: string, on: string, columns: string[]): SqliteSelect<A, M> {
 
     this._joinRight.push([tableName, on]);
     this._column.concat(columns);

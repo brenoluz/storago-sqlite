@@ -1,20 +1,17 @@
-import { Model, ConstructorModel, Schema, debug, Insert } from "@storago/orm";
-import { SqliteAdapter } from "./adapter";
+import { Model, Schema, debug, Insert, Adapter } from "@storago/orm";
 
 export type dbValueCast = string | number;
 
-export class SqliteInsert<M extends Model> implements Insert {
+export class SqliteInsert<A extends Adapter, M extends Model<A>> implements Insert<A, M>  {
 
-  protected readonly Model: ConstructorModel<M>;
-  protected readonly schema: Schema<M>;
-  protected readonly adapter: SqliteAdapter;
+  protected readonly schema: Schema<A, M>;
+  protected readonly adapter: A;
   protected values: dbValueCast[] = [];
   protected objects: M[] = [];
 
-  constructor(model: ConstructorModel<M>, schema: Schema<M>, adapter: SqliteAdapter) {
-    this.Model = model;
-    this.adapter = adapter;
+  constructor(schema: Schema<A, M>) {
     this.schema = schema;
+    this.adapter = this.schema.getAdapter();
   }
 
   add(row: M): void {
@@ -54,7 +51,7 @@ export class SqliteInsert<M extends Model> implements Insert {
         let index = parseInt(i);
         let field = fields[i];
 
-        this.values.push(field.toDB<SqliteAdapter, M>(this.adapter, obj)); //guarda os valores para gravar no banco
+        this.values.push(field.toDB<A, M>(this.adapter, obj)); //guarda os valores para gravar no banco
 
         sql += '?';
         if (index < length) {

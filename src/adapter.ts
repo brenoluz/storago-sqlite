@@ -1,5 +1,5 @@
-import { Model, ConstructorModel, Schema, debug, Adapter, Field, FieldKind, codeFieldError } from "@storago/orm";
-import { WebSQLSelect } from "./select";
+import { Model, Schema, debug, Adapter, Field, FieldKind, codeFieldError } from "@storago/orm";
+import { SqliteSelect } from "./select";
 import { SqliteInsert } from "./insert";
 import { SqliteCreate } from "./create";
 
@@ -93,7 +93,7 @@ export class SqliteAdapter implements Adapter {
     }
 
     if ([
-      FieldKind.INTEGER, 
+      FieldKind.INTEGER,
       FieldKind.BOOLEAN,
       FieldKind.TINYINT,
       FieldKind.SMALLINT,
@@ -104,7 +104,7 @@ export class SqliteAdapter implements Adapter {
     }
 
     if ([
-      FieldKind.REAL, 
+      FieldKind.REAL,
       FieldKind.DOUBLE,
       FieldKind.FLOAT,
     ].indexOf(field.kind) >= 0) {
@@ -130,15 +130,15 @@ export class SqliteAdapter implements Adapter {
     }
 
     if ([
-      FieldKind.NUMERIC, 
-      FieldKind.DATETIME, 
+      FieldKind.NUMERIC,
+      FieldKind.DATETIME,
       FieldKind.DATE,
       FieldKind.DECIMAL].indexOf(field.kind) >= 0) {
       return 'NUMERIC';
     }
 
     if ([
-      FieldKind.INTEGER, 
+      FieldKind.INTEGER,
       FieldKind.BOOLEAN,
       FieldKind.TINYINT,
       FieldKind.SMALLINT,
@@ -149,7 +149,7 @@ export class SqliteAdapter implements Adapter {
     }
 
     if ([
-      FieldKind.REAL, 
+      FieldKind.REAL,
       FieldKind.DOUBLE,
       FieldKind.FLOAT,
     ].indexOf(field.kind) >= 0) {
@@ -157,7 +157,7 @@ export class SqliteAdapter implements Adapter {
     }
 
     if ([
-      FieldKind.BLOB, 
+      FieldKind.BLOB,
     ].indexOf(field.kind) >= 0) {
       return 'BLOB';
     }
@@ -165,19 +165,19 @@ export class SqliteAdapter implements Adapter {
     throw { code: codeFieldError.FieldKindNotSupported, message: `FieldKind: ${ field.kind }` };
   };
 
-  public select<M extends Model>(model: ConstructorModel<M>, schema: Schema<M>): WebSQLSelect<M> {
-    let select = new WebSQLSelect<M>(model, schema, this);
+  public select<A extends Adapter, M extends Model<A>>(schema: Schema<A, M>): SqliteSelect<A, M> {
+    let select = new SqliteSelect<A, M>(schema);
     return select;
   }
 
-  public insert<M extends Model>(model: ConstructorModel<M>, schema: Schema<M>): SqliteInsert<M> {
-    let insert = new SqliteInsert<M>(model, schema, this);
+  public insert<A extends Adapter, M extends Model<A>>(schema: Schema<A, M>): SqliteInsert<A, M> {
+    let insert = new SqliteInsert<A, M>(schema);
     return insert;
   }
 
-  public create<M extends Model>(model: ConstructorModel<M>, schema: Schema<M>): SqliteCreate<M> {
+  public create<A extends Adapter, M extends Model<A>>(schema: Schema<A, M>): SqliteCreate<A, M> {
 
-    let create = new SqliteCreate<M>(model, schema, this);
+    let create = new SqliteCreate<A, M>(schema);
     return create;
   }
 

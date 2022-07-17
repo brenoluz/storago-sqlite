@@ -1,16 +1,14 @@
-import { Model, ConstructorModel, Schema, Create, Adapter } from "@storago/orm";
-import { SqliteAdapter } from './adapter';
+import { Model, Schema, Create, Adapter } from "@storago/orm";
 
-export class SqliteCreate<M extends Model> implements Create{
+export class SqliteCreate<A extends Adapter, M extends Model<A>> implements Create<A, M>{
 
-  private Model: ConstructorModel<M>;
-  private adapter: SqliteAdapter;
-  private schema: Schema<M>;
+  private schema: Schema<A, M>;
+  private adapter: A;
  
-  constructor(model: ConstructorModel<M>, schema: Schema<M>, adapter: SqliteAdapter){
-    this.Model = model;
-    this.adapter = adapter;
+  constructor(schema: Schema<A, M>){
+
     this.schema = schema;
+    this.adapter = schema.getAdapter();
   }
 
   private getColumns() : string[] {
@@ -20,7 +18,7 @@ export class SqliteCreate<M extends Model> implements Create{
 
     for(let field of fields){
       let name = field.getName();
-      columns.push(`${name} ${field.castDB<SqliteAdapter>(this.adapter)}`);
+      columns.push(`${name} ${field.castDB<A>(this.adapter)}`);
     }
 
     return columns;
