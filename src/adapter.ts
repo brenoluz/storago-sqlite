@@ -2,21 +2,116 @@ import { Model, Schema, debug, Adapter, Field, FieldKind, codeFieldError } from 
 import { SqliteSelect } from "./select";
 import { SqliteInsert } from "./insert";
 import { SqliteCreate } from "./create";
-import openDatabase from "websql";
+import { Database, OPEN_READWRITE, Statement } from "sqlite3";
 
 type callbackMigration = { (transaction: SQLTransaction): Promise<void> };
+type Params = string | number | null;
 
 export class SqliteAdapter implements Adapter {
 
-  public readonly db: Database;
+  protected db: Database;
+  protected mode: number;
+  protected path: string;
 
-  constructor(name: string, description: string, size: number) {
+  constructor(path: string, mode: number = OPEN_READWRITE) {
 
-    if (typeof name == 'string') {
-      this.db = openDatabase(name, '', description, size);
-    }
+    this.path = path;
+    this.mode = mode;
   }
 
+  public getDb(): Database {
+    return this.db;
+  }
+
+  public async connect(): Promise<void> {
+
+    return new Promise((resolve, reject) => {
+
+      this.db = new Database(this.path, this.mode, error => {
+
+        if (error === null) {
+          resolve();
+        } else {
+          reject(error);
+        }
+      });
+    });
+  }
+
+  public async prepare(sql: string, params: any[]): Promise<Statement> {
+
+    return new Promise((resolve, reject) => {
+      this.db.prepare(sql, params, (statement: Statement, err: Error | null) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(statement);
+        }
+      })
+    })
+  }
+
+  public run(sql: string, params: any[]): Promise<void> {
+
+    return this.prepare(sql, params).then((statement: Statement) => {
+      return new Promise((resolve, reject) => {
+        statement.run((err: Error | null) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve();
+          }
+        })
+      })
+    })
+  }
+
+  public async get(sql: string, params: any[]): Promise<any | undefined> {
+
+    return this.prepare(sql, params).then((statement: Statement) => {
+      return new Promise((resolve, reject) => {
+        statement.get((err: Error | null, row?: any) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(row);
+          }
+        })
+      })
+    })
+  }
+
+  public all(sql: string, params: any[]): Promise<any[] | undefined> {
+
+    return this.prepare(sql, params).then((statement: Statement) => {
+      return new Promise((resolve, reject) => {
+        statement.all((err: Error | null, rows?: any[]) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(rows);
+          }
+        })
+      })
+    })
+  }
+
+  public each(sql: string, params: any[], callback: (err: Error | null, row: any) => void): Promise<Number | undefined> {
+
+    return this.prepare(sql, params).then((statement: Statement) => {
+      return new Promise((resolve, reject) => {
+        statement.each(callback, (err: Error | null, count: Number) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(count);
+          }
+        })
+      })
+    })
+  }
+
+  /*
   public getVersion(): '' | number {
 
     let version = this.db.version as string;
@@ -34,6 +129,7 @@ export class SqliteAdapter implements Adapter {
       this.db.changeVersion(String(this.getVersion()), String(newVersion), cb, reject, resolve);
     });
   }
+  
 
   public async getTransaction(): Promise<SQLTransaction> {
 
@@ -41,6 +137,7 @@ export class SqliteAdapter implements Adapter {
       this.db.transaction(resolve, reject);
     });
   }
+  */
 
   fieldTransformFromDb<F extends Field>(field: F, value: any): any {
 
@@ -181,28 +278,36 @@ export class SqliteAdapter implements Adapter {
     let create = new SqliteCreate<A, M>(schema);
     return create;
   }
+}
 
-  public query(sql: DOMString, data: ObjectArray = [], tx?: SQLTransaction): Promise<SQLResultSet> {
+export type ConstructorTestModel<A extends Adapter, M extends TestModel<A>> = new (id: string, schema: TestSchema<A, M>) => M;
 
-    return new Promise(async (resolve, reject) => {
+class TestSchema<A extends Adapter, M extends TestModel<A>> extends Schema<A, M>{
 
-      if (tx === undefined) {
-        tx = await this.getTransaction();
-      }
+  readonly Model: ConstructorTestModel<A, M>;
+  readonly name: string;
+  readonly fields: Field[];
 
-      if (debug.query) {
-        console.log('@storago/orm', 'query', sql, data);
-      }
+  readonly adapter: A;
+}
 
-      tx.executeSql(sql, data, (tx: SQLTransaction, result: SQLResultSet): void => {
+class TestModel<A extends Adapter> extends Model<A>{
 
-        resolve(result);
+  readonly __schema: Schema<A, TestModel<A>>;
 
-      }, (tx: SQLTransaction, error: SQLError): boolean => {
+  make(): void {
 
-        reject(error);
-        return true;
-      });
-    });
+
   }
 }
+
+let adt = new SqliteAdapter(':memory');
+
+let s = new TestSchema<SqliteAdapter, TestModel<SqliteAdapter>>(adt);
+let a = s.getAdapter();
+let m = s.newModel();
+
+m.save().then((model: TestModel<SqliteAdapter>) => {
+
+  return model.make();
+});

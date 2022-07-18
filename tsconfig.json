@@ -10,9 +10,7 @@
     "lib": [ "es2019", "dom" ],
     "moduleResolution": "node",
     "types": [
-      "@types/websql",
       "@types/jest",
-      "@types/node",
     ]
   },
   "include": [

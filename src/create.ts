@@ -1,4 +1,5 @@
 import { Model, Schema, Create, Adapter } from "@storago/orm";
+import { SqliteAdapter } from "./adapter"
 
 export class SqliteCreate<A extends Adapter, M extends Model<A>> implements Create<A, M>{
 
@@ -33,9 +34,10 @@ export class SqliteCreate<A extends Adapter, M extends Model<A>> implements Crea
     return sql;
   }
 
-  public execute(tx: SQLTransaction) : Promise<SQLResultSet> {
+  public execute() : Promise<void> {
 
     let sql: string = this.render();
-    return this.adapter.query(sql, [], tx);
+    return Promise.resolve()
+    //return this.adapter.run(sql, []);
   }
 }
