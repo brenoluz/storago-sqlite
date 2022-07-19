@@ -2,7 +2,7 @@ import { Model, Schema, debug, Insert, Adapter } from "@storago/orm";
 
 export type dbValueCast = string | number;
 
-export class SqliteInsert<A extends Adapter, M extends Model<A>> implements Insert<A, M>  {
+export class SqliteInsert<A extends Adapter, M extends Model> implements Insert<A, M>  {
 
   protected readonly schema: Schema<A, M>;
   protected readonly adapter: A;
@@ -71,13 +71,12 @@ export class SqliteInsert<A extends Adapter, M extends Model<A>> implements Inse
     return sql;
   }
 
-  public async execute(): Promise<SQLResultSet> {
+  public async execute(): Promise<any[] | undefined> {
 
     let sql = this.render();
     if (debug.insert) {
       console.log(sql, this.values);
     }
-
 
     return this.adapter.query(sql, this.values);
   }

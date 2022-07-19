@@ -81,7 +81,7 @@ export class SqliteAdapter implements Adapter {
     })
   }
 
-  public all(sql: string, params: any[]): Promise<any[] | undefined> {
+  public query(sql: any, params: any[], ...args: any[]): Promise<any[]> {
 
     return this.prepare(sql, params).then((statement: Statement) => {
       return new Promise((resolve, reject) => {
@@ -263,51 +263,46 @@ export class SqliteAdapter implements Adapter {
     throw { code: codeFieldError.FieldKindNotSupported, message: `FieldKind: ${ field.kind }` };
   };
 
-  public select<A extends Adapter, M extends Model<A>>(schema: Schema<A, M>): SqliteSelect<A, M> {
+  public select<A extends Adapter, M extends Model>(schema: Schema<A, M>): SqliteSelect<A, M> {
     let select = new SqliteSelect<A, M>(schema);
     return select;
   }
 
-  public insert<A extends Adapter, M extends Model<A>>(schema: Schema<A, M>): SqliteInsert<A, M> {
+  public insert<A extends Adapter, M extends Model>(schema: Schema<A, M>): SqliteInsert<A, M> {
     let insert = new SqliteInsert<A, M>(schema);
     return insert;
   }
 
-  public create<A extends Adapter, M extends Model<A>>(schema: Schema<A, M>): SqliteCreate<A, M> {
+  public create<A extends Adapter, M extends Model>(schema: Schema<A, M>): SqliteCreate<A, M> {
 
     let create = new SqliteCreate<A, M>(schema);
     return create;
   }
 }
 
-export type ConstructorTestModel<A extends Adapter, M extends TestModel<A>> = new (id: string, schema: TestSchema<A, M>) => M;
+export type ConstructorTestModel<M extends TestModel> = new (id: string) => M;
 
-class TestSchema<A extends Adapter, M extends TestModel<A>> extends Schema<A, M>{
+class TestSchema<A extends Adapter> extends Schema<A, TestModel>{
 
-  readonly Model: ConstructorTestModel<A, M>;
+  readonly Model: ConstructorTestModel<TestModel>;
   readonly name: string;
   readonly fields: Field[];
 
   readonly adapter: A;
 }
 
-class TestModel<A extends Adapter> extends Model<A>{
-
-  readonly __schema: Schema<A, TestModel<A>>;
+class TestModel extends Model{
 
   make(): void {
-
 
   }
 }
 
 let adt = new SqliteAdapter(':memory');
 
-let s = new TestSchema<SqliteAdapter, TestModel<SqliteAdapter>>(adt);
+let s = new TestSchema<SqliteAdapter>(adt);
 let a = s.getAdapter();
+
 let m = s.newModel();
 
-m.save().then((model: TestModel<SqliteAdapter>) => {
-
-  return model.make();
-});
+let oi = s.save(m)

@@ -1,7 +1,7 @@
 import { Model, Schema, Create, Adapter } from "@storago/orm";
 import { SqliteAdapter } from "./adapter"
 
-export class SqliteCreate<A extends Adapter, M extends Model<A>> implements Create<A, M>{
+export class SqliteCreate<A extends Adapter, M extends Model> implements Create<A, M>{
 
   private schema: Schema<A, M>;
   private adapter: A;

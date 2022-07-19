@@ -4,7 +4,7 @@ type whereTuple = [string, paramsType[] | undefined];
 type joinTuple = [string, string];
 type orderType = "ASC" | "DESC";
 
-export class SqliteSelect<A extends Adapter, M extends Model<A>> implements Select<A, M> {
+export class SqliteSelect<A extends Adapter, M extends Model> implements Select<A, M> {
 
   private schema: Schema<A, M>;
   private adapter: A;
@@ -171,7 +171,7 @@ export class SqliteSelect<A extends Adapter, M extends Model<A>> implements Sele
     return this.render();
   }
 
-  public execute(): Promise<SQLResultSet> {
+  public execute(): Promise<any[] | undefined> {
 
     let sql: string = this.render();
     console.log('execute', sql, this._params);
@@ -183,8 +183,8 @@ export class SqliteSelect<A extends Adapter, M extends Model<A>> implements Sele
     let promises: Promise<M>[] = [];
     let result = await this.execute();
 
-    for (let i = 0; result.rows.length > i; i++) {
-      let row = result.rows.item(i);
+    for (let i = 0; result.length > i; i++) {
+      let row = result[i];
       promises.push(this.schema.populateFromDB(row));
     }
 
