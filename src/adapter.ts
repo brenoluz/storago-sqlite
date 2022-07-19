@@ -1,22 +1,25 @@
+
 import { Model, Schema, debug, Adapter, Field, FieldKind, codeFieldError } from "@storago/orm";
 import { SqliteSelect } from "./select";
 import { SqliteInsert } from "./insert";
 import { SqliteCreate } from "./create";
-import { Database, OPEN_READWRITE, Statement } from "sqlite3";
+import { Database, Statement } from "sqlite3";
+
+export enum codeSqliteAdapterError {
+  'DatabaseNotConnected' = '@storago/sqlite/adapter/DatabaseNotConnected',
+}
 
 type callbackMigration = { (transaction: SQLTransaction): Promise<void> };
 type Params = string | number | null;
 
 export class SqliteAdapter implements Adapter {
 
-  protected db: Database;
-  protected mode: number;
-  protected path: string;
+  protected db?: Database;
+  protected readonly path: string;
 
-  constructor(path: string, mode: number = OPEN_READWRITE) {
+  constructor(path: string) {
 
     this.path = path;
-    this.mode = mode;
   }
 
   public getDb(): Database {
@@ -25,9 +28,13 @@ export class SqliteAdapter implements Adapter {
 
   public async connect(): Promise<void> {
 
+    if(this.db !== undefined){
+      return;
+    }
+
     return new Promise((resolve, reject) => {
 
-      this.db = new Database(this.path, this.mode, error => {
+      this.db = new Database(this.path, error => {
 
         if (error === null) {
           resolve();
@@ -41,11 +48,28 @@ export class SqliteAdapter implements Adapter {
   public async prepare(sql: string, params: any[]): Promise<Statement> {
 
     return new Promise((resolve, reject) => {
-      this.db.prepare(sql, params, (statement: Statement, err: Error | null) => {
+      if (this.db === undefined) {
+        reject({code: codeSqliteAdapterError.DatabaseNotConnected, message: 'database not connected, please call connect() first'});
+      }
+
+      let state = this.db.prepare(sql, params, (err: Error | null) => {
         if (err) {
           reject(err);
         } else {
-          resolve(statement);
+          resolve(state);
+        }
+      })
+    })
+  }
+
+  close(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.db?.close((err: Error) => {
+        if (err) {
+          reject(err);
+        } else {
+          this.db = undefined;
+          resolve();
         }
       })
     })
@@ -81,7 +105,7 @@ export class SqliteAdapter implements Adapter {
     })
   }
 
-  public query(sql: any, params: any[], ...args: any[]): Promise<any[]> {
+  public query(sql: any, params: any[], ...args: any[]): Promise<any[] | undefined> {
 
     return this.prepare(sql, params).then((statement: Statement) => {
       return new Promise((resolve, reject) => {
@@ -89,7 +113,13 @@ export class SqliteAdapter implements Adapter {
           if (err) {
             reject(err);
           } else {
-            resolve(rows);
+            statement.finalize((err: Error) => {
+              if(err){
+                reject(err);
+              }else{
+                resolve(rows);
+              }
+            })
           }
         })
       })

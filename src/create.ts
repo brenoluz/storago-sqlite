@@ -34,10 +34,9 @@ export class SqliteCreate<A extends Adapter, M extends Model> implements Create<
     return sql;
   }
 
-  public execute() : Promise<void> {
+  public execute() : Promise<any[] | undefined> {
 
     let sql: string = this.render();
-    return Promise.resolve()
-    //return this.adapter.run(sql, []);
+    return this.adapter.query(sql, []);
   }
 }

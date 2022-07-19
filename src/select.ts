@@ -147,7 +147,6 @@ export class SqliteSelect<A extends Adapter, M extends Model> implements Select<
           sql += ' AND ';
         }
         if (where[1] !== undefined) {
-          console.log('where', where, where[1]);
           this._params = this._params.concat(where[1]);
         }
       }
@@ -174,7 +173,6 @@ export class SqliteSelect<A extends Adapter, M extends Model> implements Select<
   public execute(): Promise<any[] | undefined> {
 
     let sql: string = this.render();
-    console.log('execute', sql, this._params);
     return this.adapter.query(sql, this._params);
   }
 
