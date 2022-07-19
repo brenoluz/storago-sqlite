@@ -279,30 +279,3 @@ export class SqliteAdapter implements Adapter {
     return create;
   }
 }
-
-export type ConstructorTestModel<M extends TestModel> = new (id: string) => M;
-
-class TestSchema<A extends Adapter> extends Schema<A, TestModel>{
-
-  readonly Model: ConstructorTestModel<TestModel>;
-  readonly name: string;
-  readonly fields: Field[];
-
-  readonly adapter: A;
-}
-
-class TestModel extends Model{
-
-  make(): void {
-
-  }
-}
-
-let adt = new SqliteAdapter(':memory');
-
-let s = new TestSchema<SqliteAdapter>(adt);
-let a = s.getAdapter();
-
-let m = s.newModel();
-
-let oi = s.save(m)
