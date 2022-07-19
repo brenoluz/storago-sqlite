@@ -7,6 +7,7 @@ module.exports = {
   devServer: {
     static: './dist/'
   },
+  target: 'node',
   module: {
     rules: [
       {
