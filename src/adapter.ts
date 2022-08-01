@@ -105,7 +105,7 @@ export class SqliteAdapter implements Adapter {
     })
   }
 
-  public query(sql: any, params: any[], ...args: any[]): Promise<any[] | undefined> {
+  public all(sql: any, params: any[], ...args: any[]): Promise<any[] | undefined> {
 
     return this.prepare(sql, params).then((statement: Statement) => {
       return new Promise((resolve, reject) => {
@@ -293,19 +293,18 @@ export class SqliteAdapter implements Adapter {
     throw { code: codeFieldError.FieldKindNotSupported, message: `FieldKind: ${ field.kind }` };
   };
 
-  public select<A extends Adapter, M extends Model>(schema: Schema<A, M>): SqliteSelect<A, M> {
-    let select = new SqliteSelect<A, M>(schema);
+  public select<M extends Model>(schema: Schema<SqliteAdapter, M>): SqliteSelect<M> {
+    let select = new SqliteSelect<M>(schema);
     return select;
   }
 
-  public insert<A extends Adapter, M extends Model>(schema: Schema<A, M>): SqliteInsert<A, M> {
-    let insert = new SqliteInsert<A, M>(schema);
+  public insert<M extends Model>(schema: Schema<SqliteAdapter, M>): SqliteInsert<M> {
+    let insert = new SqliteInsert<M>(schema);
     return insert;
   }
 
-  public create<A extends Adapter, M extends Model>(schema: Schema<A, M>): SqliteCreate<A, M> {
-
-    let create = new SqliteCreate<A, M>(schema);
+  public create<M extends Model>(schema: Schema<SqliteAdapter, M>): SqliteCreate<M> {
+    let create = new SqliteCreate<M>(schema);
     return create;
   }
 }

@@ -1,13 +1,14 @@
 import { Model, Schema, debug, Select, paramsType, Adapter } from '@storago/orm';
+import { SqliteAdapter } from './adapter';
 
 type whereTuple = [string, paramsType[] | undefined];
 type joinTuple = [string, string];
 type orderType = "ASC" | "DESC";
 
-export class SqliteSelect<A extends Adapter, M extends Model> implements Select<A, M> {
+export class SqliteSelect<M extends Model> implements Select<M> {
 
-  private schema: Schema<A, M>;
-  private adapter: A;
+  private schema: Schema<SqliteAdapter, M>;
+  private adapter: SqliteAdapter;
   private _distinct: boolean = false;
   private _from: string = '';
   private _where: whereTuple[] = [];
@@ -20,24 +21,28 @@ export class SqliteSelect<A extends Adapter, M extends Model> implements Select<
   private _offset?: number;
   private _limit?: number;
 
-  constructor(schema: Schema<A, M>) {
+  constructor(schema: Schema<SqliteAdapter, M>) {
     this.schema = schema;
     this.adapter = this.schema.getAdapter();
   }
 
-  distinct(flag: boolean = true): SqliteSelect<A, M> {
+  public getParams() : paramsType[] {
+    return this._params;
+  }
+
+  distinct(flag: boolean = true): this {
 
     this._distinct = flag;
     return this;
   }
 
-  limit(limit: number, offset?: number): SqliteSelect<A, M> {
+  limit(limit: number, offset?: number): this {
     this._limit = limit;
     this._offset = offset;
     return this;
   }
 
-  from(from: string, columns?: string[]): SqliteSelect<A, M> {
+  from(from: string, columns?: string[]): this {
 
     this._from = from;
     if (!columns) {
@@ -53,7 +58,7 @@ export class SqliteSelect<A extends Adapter, M extends Model> implements Select<
     return this;
   }
 
-  where(criteria: string, params?: paramsType[] | paramsType): SqliteSelect<A, M> {
+  where(criteria: string, params?: paramsType[] | paramsType): this {
 
     const _params: paramsType[] = [];
     if (params === undefined) {
@@ -70,7 +75,7 @@ export class SqliteSelect<A extends Adapter, M extends Model> implements Select<
     return this;
   }
 
-  join(tableName: string, on: string, columns?: string[]): SqliteSelect<A, M> {
+  join(tableName: string, on: string, columns?: string[]): this {
 
     this._join.push([tableName, on]);
     if (!!columns) {
@@ -79,7 +84,7 @@ export class SqliteSelect<A extends Adapter, M extends Model> implements Select<
     return this;
   }
 
-  joinLeft(tableName: string, on: string, columns?: string[]): SqliteSelect<A, M> {
+  joinLeft(tableName: string, on: string, columns?: string[]): this {
 
     this._joinLeft.push([tableName, on]);
     if (!!columns) {
@@ -88,7 +93,7 @@ export class SqliteSelect<A extends Adapter, M extends Model> implements Select<
     return this;
   }
 
-  joinRight(tableName: string, on: string, columns: string[]): SqliteSelect<A, M> {
+  joinRight(tableName: string, on: string, columns: string[]): this {
 
     this._joinRight.push([tableName, on]);
     this._column.concat(columns);
@@ -173,7 +178,7 @@ export class SqliteSelect<A extends Adapter, M extends Model> implements Select<
   public execute(): Promise<any[] | undefined> {
 
     let sql: string = this.render();
-    return this.adapter.query(sql, this._params);
+    return this.adapter.all(sql, this._params);
   }
 
   public async all(): Promise<M[]> {

@@ -1,10 +1,10 @@
 
-import { exec } from 'child_process';
 import { Database, Statement } from 'sqlite3';
 import { SqliteAdapter } from '../../src';
 import { SqliteCreate } from '../../src/create';
 import { carShopAdapter, carSchema } from '../app';
 import { CarSchema } from '../app/car/carSchema';
+import { debug } from '@storago/orm';
 
 test('test adapter', async () => {
 
@@ -12,7 +12,7 @@ test('test adapter', async () => {
   expect(carShopAdapter.getDb()).not.toBeInstanceOf(Database);
 
   //not connected
-  let callQuery = carShopAdapter.query('SELECT * FROM cars LIMIT 1', []);
+  let callQuery = carShopAdapter.all('SELECT * FROM cars LIMIT 1', []);
   await expect(callQuery).rejects.toMatchObject({ code: '@storago/sqlite/adapter/DatabaseNotConnected' })
 
   await carShopAdapter.connect();
@@ -34,7 +34,7 @@ test('test adapter', async () => {
 
   //close
   await carShopAdapter.close();
-  let callQueryClose = carShopAdapter.query('SELECT * FROM cars LIMIT 1', []);
+  let callQueryClose = carShopAdapter.all('SELECT * FROM cars LIMIT 1', []);
   await expect(callQueryClose).rejects.toMatchObject({ code: '@storago/sqlite/adapter/DatabaseNotConnected' })
 })
 
@@ -60,7 +60,23 @@ test('test create', async () => {
   expect(create.render()).toBe('CREATE TABLE IF NOT EXISTS cars (id TEXT);');
 
   let executed = await create.execute();
-  expect(executed).toEqual([]);
+  expect(executed).toBeUndefined();
+})
+
+test('test insert',async () => {
+  
+  debug.insert = false;
+  await carShopAdapter.connect();
+  let create = carSchema.createTable();
+  await expect(create.execute()).resolves.toBeUndefined();
+
+  let car = carSchema.newModel();
+  let insert = carSchema.insert();
+  insert.add(car);
+
+  expect(insert.render()).toBe('INSERT INTO cars (id) VALUES (?);');
+  expect(insert.getValues().length).toBe(1);
+  await expect(insert.execute()).resolves.toBeUndefined()
 })
 
 test('test select', async () => {

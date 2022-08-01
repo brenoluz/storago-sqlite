@@ -1,15 +1,16 @@
-import { Model, Schema, debug, Insert, Adapter } from "@storago/orm";
+import { Model, Schema, debug, Insert } from "@storago/orm";
+import { SqliteAdapter } from "./adapter";
 
 export type dbValueCast = string | number;
 
-export class SqliteInsert<A extends Adapter, M extends Model> implements Insert<A, M>  {
+export class SqliteInsert<M extends Model> implements Insert<M>  {
 
-  protected readonly schema: Schema<A, M>;
-  protected readonly adapter: A;
+  protected readonly schema: Schema<SqliteAdapter, M>;
+  protected readonly adapter: SqliteAdapter;
   protected values: dbValueCast[] = [];
   protected objects: M[] = [];
 
-  constructor(schema: Schema<A, M>) {
+  constructor(schema: Schema<SqliteAdapter, M>) {
     this.schema = schema;
     this.adapter = this.schema.getAdapter();
   }
@@ -19,8 +20,13 @@ export class SqliteInsert<A extends Adapter, M extends Model> implements Insert<
     this.objects.push(row);
   }
 
+  getValues() : dbValueCast[] {
+    return this.values;
+  }
+
   render(): string {
 
+    this.values = [];
     let fields = this.schema.getFields();
 
     let length = fields.length - 1;
@@ -30,7 +36,7 @@ export class SqliteInsert<A extends Adapter, M extends Model> implements Insert<
       let index = parseInt(i);
       let field = fields[i];
       let name = field.getName();
-      sql += `"${ name }"`;
+      sql += `${ name }`;
       if (index < length) {
         sql += ', ';
       }
@@ -50,8 +56,7 @@ export class SqliteInsert<A extends Adapter, M extends Model> implements Insert<
 
         let index = parseInt(i);
         let field = fields[i];
-
-        this.values.push(field.toDB<A, M>(this.adapter, obj)); //guarda os valores para gravar no banco
+        this.values.push(field.toDB<SqliteAdapter, M>(this.adapter, obj)); //guarda os valores para gravar no banco
 
         sql += '?';
         if (index < length) {
@@ -67,18 +72,18 @@ export class SqliteInsert<A extends Adapter, M extends Model> implements Insert<
     }
 
     sql += ';';
-
     return sql;
   }
 
-  public async execute(): Promise<any[] | undefined> {
+  public async execute(): Promise<void> {
 
     let sql = this.render();
     if (debug.insert) {
       console.log(sql, this.values);
     }
 
-    return this.adapter.query(sql, this.values);
+    return this.adapter.run(sql, this.values);
+    //return this.adapter.query(sql, this.values);
   }
 
   public async save(): Promise<void> {
