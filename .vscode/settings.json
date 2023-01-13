@@ -4,6 +4,7 @@
     "MEDIUMINT",
     "rowid",
     "rowset",
+    "storago",
     "TINYINT",
     "websql"
   ]

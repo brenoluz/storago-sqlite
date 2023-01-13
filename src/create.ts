@@ -1,4 +1,4 @@
-import { Model, Schema, Create, Adapter } from "@storago/orm";
+import { Model, Schema, Create } from "@storago/orm";
 import { SqliteAdapter } from "./adapter"
 
 export class SqliteCreate<M extends Model> implements Create<M>{

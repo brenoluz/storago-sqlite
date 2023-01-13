@@ -4,6 +4,7 @@ import { SqliteSelect } from "./select";
 import { SqliteInsert } from "./insert";
 import { SqliteCreate } from "./create";
 import { Database, Statement } from "sqlite3";
+import { SqliteDrop } from "./drop";
 
 export enum codeSqliteAdapterError {
   'DatabaseNotConnected' = '@storago/sqlite/adapter/DatabaseNotConnected',
@@ -28,7 +29,7 @@ export class SqliteAdapter implements Adapter {
 
   public async connect(): Promise<void> {
 
-    if(this.db !== undefined){
+    if (this.db !== undefined) {
       return;
     }
 
@@ -49,7 +50,7 @@ export class SqliteAdapter implements Adapter {
 
     return new Promise((resolve, reject) => {
       if (this.db === undefined) {
-        reject({code: codeSqliteAdapterError.DatabaseNotConnected, message: 'database not connected, please call connect() first'});
+        reject({ code: codeSqliteAdapterError.DatabaseNotConnected, message: 'database not connected, please call connect() first' });
       }
 
       let state = this.db.prepare(sql, params, (err: Error | null) => {
@@ -114,9 +115,9 @@ export class SqliteAdapter implements Adapter {
             reject(err);
           } else {
             statement.finalize((err: Error) => {
-              if(err){
+              if (err) {
                 reject(err);
-              }else{
+              } else {
                 resolve(rows);
               }
             })
@@ -290,7 +291,7 @@ export class SqliteAdapter implements Adapter {
       return 'BLOB';
     }
 
-    throw { code: codeFieldError.FieldKindNotSupported, message: `FieldKind: ${ field.kind }` };
+    throw { code: codeFieldError.FieldKindNotSupported, message: `FieldKind: ${field.kind}` };
   };
 
   public select<M extends Model>(schema: Schema<SqliteAdapter, M>): SqliteSelect<M> {
@@ -306,5 +307,10 @@ export class SqliteAdapter implements Adapter {
   public create<M extends Model>(schema: Schema<SqliteAdapter, M>): SqliteCreate<M> {
     let create = new SqliteCreate<M>(schema);
     return create;
+  }
+
+  public drop<M extends Model>(schema: Schema<SqliteAdapter, M>): SqliteDrop<M> {
+    let drop = new SqliteDrop(schema);
+    return drop;
   }
 }

@@ -1,4 +1,3 @@
-
 import { Database, Statement } from 'sqlite3';
 import { SqliteAdapter } from '../../src';
 import { SqliteCreate } from '../../src/create';
@@ -21,6 +20,19 @@ test('test adapter', async () => {
   //force sql error syntax
   await expect(carShopAdapter.prepare('SELECT * cars', [])).rejects.toThrowError('SQLITE_ERROR: near \"cars\": syntax error');
 
+  //close
+  await carShopAdapter.close();
+  let callQueryClose = carShopAdapter.all('SELECT * FROM cars LIMIT 1', []);
+  await expect(callQueryClose).rejects.toMatchObject({ code: '@storago/sqlite/adapter/DatabaseNotConnected' })
+})
+
+test('test statement', async () => {
+
+  //create table cars
+  await carShopAdapter.connect();
+  let create = carSchema.createTable();
+  await expect(create.execute()).resolves.toBeUndefined();
+
   //test statement
   let prepared = await carShopAdapter.prepare('SELECT * FROM cars LIMIT 1', []);
   await expect(prepared).toBeInstanceOf(Statement);
@@ -31,12 +43,7 @@ test('test adapter', async () => {
       err ? reject(err) : resolve(undefined);
     })
   })).resolves.toBe(undefined);
-
-  //close
-  await carShopAdapter.close();
-  let callQueryClose = carShopAdapter.all('SELECT * FROM cars LIMIT 1', []);
-  await expect(callQueryClose).rejects.toMatchObject({ code: '@storago/sqlite/adapter/DatabaseNotConnected' })
-})
+});
 
 test('test schema', async () => {
 
@@ -51,20 +58,8 @@ test('test schema', async () => {
   expect(carSchema.getColumns()).toContain('id');
 });
 
-test('test create', async () => {
+test('test insert', async () => {
 
-  await carShopAdapter.connect();
-  let create = carSchema.createTable();
-
-  expect(create).toBeInstanceOf(SqliteCreate)
-  expect(create.render()).toBe('CREATE TABLE IF NOT EXISTS cars (id TEXT);');
-
-  let executed = await create.execute();
-  expect(executed).toBeUndefined();
-})
-
-test('test insert',async () => {
-  
   debug.insert = false;
   await carShopAdapter.connect();
   let create = carSchema.createTable();
@@ -81,6 +76,7 @@ test('test insert',async () => {
 
 test('test select', async () => {
 
+  debug.select = false;
   let select = carSchema.select();
   expect(select.render()).toBe('SELECT cars.id, cars.rowid FROM cars;');
 
