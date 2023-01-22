@@ -1,5 +1,5 @@
 import { SqliteAdapter } from "../../src";
-import { CarSchema } from "./car/carSchema";
+import { CarSchema } from "./model/car/carSchema";
 
 export const carShopAdapter = new SqliteAdapter(':memory:');
 
