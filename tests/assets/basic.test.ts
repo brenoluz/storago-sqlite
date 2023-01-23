@@ -32,6 +32,7 @@ test('test statement', async () => {
   //create table cars
   await carShopAdapter.connect();
   let create = carSchema.createTable();
+  expect(create.render()).toBe('CREATE TABLE IF NOT EXISTS cars (id TEXT, brand TEXT);');
   await expect(create.execute()).resolves.toBeUndefined();
 
   //test statement
@@ -66,13 +67,13 @@ test('test insert', async () => {
   let create = carSchema.createTable();
   await expect(create.execute()).resolves.toBeUndefined();
 
-
-  let car = carSchema.new({id: '123123'} as CarInterface);
+  
+  let car = carSchema.new('1234');
   let insert = carSchema.insert();
   insert.add(car);
 
-  expect(insert.render()).toBe('INSERT INTO cars (id) VALUES (?);');
-  expect(insert.getValues().length).toBe(1);
+  expect(insert.render()).toBe('INSERT INTO cars (id, brand) VALUES (?, ?);');
+  expect(insert.getValues().length).toBe(2);
   await expect(insert.execute()).resolves.toBeUndefined()
 })
 
@@ -80,10 +81,10 @@ test('test select', async () => {
 
   debug.select = false;
   let select = carSchema.select();
-  expect(select.render()).toBe('SELECT cars.id, cars.rowid FROM cars;');
+  expect(select.render()).toBe('SELECT cars.id, cars.brand, cars.rowid FROM cars;');
 
   select.where('id = ?', '123123');
-  expect(select.render()).toBe('SELECT cars.id, cars.rowid FROM cars WHERE id = ?;');
+  expect(select.render()).toBe('SELECT cars.id, cars.brand, cars.rowid FROM cars WHERE id = ?;');
 
   await carShopAdapter.connect();
   let car = await select.one();

@@ -4,7 +4,7 @@ import { SqliteCreate } from '../../src/create';
 import { carShopAdapter, carSchema } from '../app';
 import { CarSchema } from '../app/model/car/carSchema';
 import { debug } from '@storago/orm';
-import { CarModel } from '../app/model/car/carModel';
+import { CarInterface } from '../app/model/car/carModel';
 
 beforeAll(async () => {
 
@@ -20,5 +20,6 @@ afterAll(async () => {
 });
 
 test('test insert same instance three times', async () => {
+
 
 });

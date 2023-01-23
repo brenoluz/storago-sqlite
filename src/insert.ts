@@ -1,9 +1,9 @@
-import { Model, Schema, debug, Insert } from "@storago/orm";
+import { ModelInterface, Schema, debug, Insert } from "@storago/orm";
 import { SqliteAdapter } from "./adapter";
 
 export type dbValueCast = string | number;
 
-export class SqliteInsert<M extends Model> implements Insert<M>  {
+export class SqliteInsert<M extends ModelInterface> implements Insert<M>  {
 
   protected readonly schema: Schema<SqliteAdapter, M>;
   protected readonly adapter: SqliteAdapter;

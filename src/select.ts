@@ -1,11 +1,11 @@
-import { Model, Schema, debug, Select, paramsType, Adapter } from '@storago/orm';
+import { ModelInterface, Schema, debug, Select, paramsType, Adapter } from '@storago/orm';
 import { SqliteAdapter } from './adapter';
 
 type whereTuple = [string, paramsType[] | undefined];
 type joinTuple = [string, string];
 type orderType = "ASC" | "DESC";
 
-export class SqliteSelect<M extends Model> implements Select<M> {
+export class SqliteSelect<M extends ModelInterface> implements Select<M> {
 
   private schema: Schema<SqliteAdapter, M>;
   private adapter: SqliteAdapter;

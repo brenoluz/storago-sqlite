@@ -1,12 +1,12 @@
-import { Adapter, Schema, Field, ModelConstructor } from "@storago/orm";
-import { CarModel, ConstructorCarModel, CarInterface } from "./carModel";
+import { Adapter, Schema, fields, ModelConstructor } from "@storago/orm";
+import { CarModel, ConstructorCarModel } from "./carModel";
 
-export class CarSchema<A extends Adapter> extends Schema<A, CarInterface>{
+export class CarSchema<A extends Adapter> extends Schema<A, CarModel>{
 
-  readonly Model?: ConstructorCarModel = CarModel;
+  readonly Model: ConstructorCarModel = CarModel;
   readonly name: string = 'cars';
 
-  constructor(adapter: A){
-    super(adapter);
-  }
+  fields = [
+    new fields.TextField('brand'),
+  ]
 }

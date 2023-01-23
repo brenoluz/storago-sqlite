@@ -1,5 +1,5 @@
 
-import { Model, Schema, debug, Adapter, Field, FieldKind, codeFieldError } from "@storago/orm";
+import { ModelInterface, Schema, debug, Adapter, Field, FieldKind, codeFieldError } from "@storago/orm";
 import { SqliteSelect } from "./select";
 import { SqliteInsert } from "./insert";
 import { SqliteCreate } from "./create";
@@ -294,22 +294,22 @@ export class SqliteAdapter implements Adapter {
     throw { code: codeFieldError.FieldKindNotSupported, message: `FieldKind: ${field.kind}` };
   };
 
-  public select<M extends Model>(schema: Schema<SqliteAdapter, M>): SqliteSelect<M> {
+  public select<M extends ModelInterface>(schema: Schema<SqliteAdapter, M>): SqliteSelect<M> {
     let select = new SqliteSelect<M>(schema);
     return select;
   }
 
-  public insert<M extends Model>(schema: Schema<SqliteAdapter, M>): SqliteInsert<M> {
+  public insert<M extends ModelInterface>(schema: Schema<SqliteAdapter, M>): SqliteInsert<M> {
     let insert = new SqliteInsert<M>(schema);
     return insert;
   }
 
-  public create<M extends Model>(schema: Schema<SqliteAdapter, M>): SqliteCreate<M> {
+  public create<M extends ModelInterface>(schema: Schema<SqliteAdapter, M>): SqliteCreate<M> {
     let create = new SqliteCreate<M>(schema);
     return create;
   }
 
-  public drop<M extends Model>(schema: Schema<SqliteAdapter, M>): SqliteDrop<M> {
+  public drop<M extends ModelInterface>(schema: Schema<SqliteAdapter, M>): SqliteDrop<M> {
     let drop = new SqliteDrop(schema);
     return drop;
   }

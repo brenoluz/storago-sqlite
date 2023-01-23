@@ -1,18 +1,18 @@
-import { ModelInterface } from "@storago/orm";
+import { ModelInterface, Model } from "@storago/orm";
 
-export interface CarInterface extends ModelInterface{
+export interface CarInterface{
   brand: string,
 }
 
-export type ConstructorCarModel = new (data: CarInterface) => CarModel;
+export type ConstructorCarModel = new (id: string, brand: string) => CarModel;
 
-export class CarModel implements CarInterface{
+export class CarModel extends Model implements CarInterface, ModelInterface{
 
-  id: string;
-  __data: CarInterface;
   brand: string;
 
-  make(): void {
+  constructor(id: string) {
 
+    super(id);
+    //this.brand = brand;
   }
 }

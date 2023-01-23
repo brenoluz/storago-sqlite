@@ -1,9 +1,9 @@
-import { Model, Schema, debug, Drop } from "@storago/orm";
+import { ModelInterface, Schema, debug, Drop } from "@storago/orm";
 import { SqliteAdapter } from "./adapter";
 
 export type dbValueCast = string | number;
 
-export class SqliteDrop<M extends Model> implements Drop<M>  {
+export class SqliteDrop<M extends ModelInterface> implements Drop<M>  {
 
   protected readonly schema: Schema<SqliteAdapter, M>;
   protected readonly adapter: SqliteAdapter;
