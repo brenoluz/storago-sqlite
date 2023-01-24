@@ -33,7 +33,7 @@ test('test statement', async () => {
   //create table cars
   await carShopAdapter.connect();
   let create = carSchema.createTable();
-  expect(create.render()).toBe('CREATE TABLE IF NOT EXISTS cars (id TEXT, brand TEXT);');
+  expect(create.render()).toBe('CREATE TABLE IF NOT EXISTS cars (id TEXT PRIMARY KEY, brand TEXT);');
   await expect(create.execute()).resolves.toBeUndefined();
 
   //test statement

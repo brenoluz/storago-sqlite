@@ -1,12 +1,8 @@
-import { Adapter, Schema, fields, ModelInterface, ModelConstructor, Model } from "@storago/orm";
-
-export interface StoreInterface extends ModelInterface {
-  name: string;
-}
+import { Adapter, Schema, fields, Model } from "@storago/orm";
+import { StoreInterface, StoreModel } from "./storeModel";
 
 export class StoreSchema<A extends Adapter> extends Schema<A, Model>{
 
-  readonly Model: ModelConstructor<Model> = Model;
   readonly name: string = 'stores';
 
   fields = [
@@ -15,5 +11,13 @@ export class StoreSchema<A extends Adapter> extends Schema<A, Model>{
 
   constructor(adapter: A) {
     super(adapter);
+  }
+
+  createFromInterface(data: StoreInterface): StoreModel {
+      
+    const model = new StoreModel(data.id, data.name);
+    model.__data = data;
+
+    return model;
   }
 }

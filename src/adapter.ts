@@ -1,10 +1,11 @@
 
-import { ModelInterface, Schema, debug, Adapter, Field, FieldKind, codeFieldError } from "@storago/orm";
+import { ModelInterface, Schema, debug, Adapter, Field, FieldKind, codeFieldError, Model, Replace } from "@storago/orm";
 import { SqliteSelect } from "./select";
 import { SqliteInsert } from "./insert";
 import { SqliteCreate } from "./create";
 import { Database, Statement } from "sqlite3";
 import { SqliteDrop } from "./drop";
+import { SqliteReplace } from "./replace";
 
 export enum codeSqliteAdapterError {
   'DatabaseNotConnected' = '@storago/sqlite/adapter/DatabaseNotConnected',
@@ -294,23 +295,28 @@ export class SqliteAdapter implements Adapter {
     throw { code: codeFieldError.FieldKindNotSupported, message: `FieldKind: ${field.kind}` };
   };
 
-  public select<M extends ModelInterface>(schema: Schema<SqliteAdapter, M>): SqliteSelect<M> {
-    let select = new SqliteSelect<M>(schema);
+  public select<M extends Model>(schema: Schema<SqliteAdapter, M>): SqliteSelect<M> {
+    const select = new SqliteSelect<M>(schema);
     return select;
   }
 
-  public insert<M extends ModelInterface>(schema: Schema<SqliteAdapter, M>): SqliteInsert<M> {
-    let insert = new SqliteInsert<M>(schema);
+  public insert<M extends Model>(schema: Schema<SqliteAdapter, M>): SqliteInsert<M> {
+    const insert = new SqliteInsert<M>(schema);
     return insert;
   }
 
-  public create<M extends ModelInterface>(schema: Schema<SqliteAdapter, M>): SqliteCreate<M> {
-    let create = new SqliteCreate<M>(schema);
+  public create<M extends Model>(schema: Schema<SqliteAdapter, M>): SqliteCreate<M> {
+    const create = new SqliteCreate<M>(schema);
     return create;
   }
 
-  public drop<M extends ModelInterface>(schema: Schema<SqliteAdapter, M>): SqliteDrop<M> {
-    let drop = new SqliteDrop(schema);
+  public drop<M extends Model>(schema: Schema<SqliteAdapter, M>): SqliteDrop<M> {
+    const drop = new SqliteDrop(schema);
     return drop;
+  }
+
+  public replace<M extends Model>(schema: Schema<this, M>): SqliteReplace<M> {
+    const replace = new SqliteReplace(schema);
+    return replace;
   }
 }
