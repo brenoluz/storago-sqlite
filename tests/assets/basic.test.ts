@@ -4,7 +4,8 @@ import { SqliteCreate } from '../../src/create';
 import { carShopAdapter, carSchema } from '../app';
 import { CarSchema } from '../app/model/car/carSchema';
 import { debug } from '@storago/orm';
-import { CarInterface } from '../app/model/car/carModel';
+import { CarInterface, CarModel } from '../app/model/car/carModel';
+import { v4 as uuid } from 'uuid';
 
 test('test adapter', async () => {
 
@@ -67,8 +68,7 @@ test('test insert', async () => {
   let create = carSchema.createTable();
   await expect(create.execute()).resolves.toBeUndefined();
 
-  
-  let car = carSchema.new('1234');
+  let car = new CarModel(uuid(), 'ford');
   let insert = carSchema.insert();
   insert.add(car);
 
